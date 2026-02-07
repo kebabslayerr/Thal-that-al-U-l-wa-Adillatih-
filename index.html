@@ -2,116 +2,203 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thalathat al-Usul Master Study Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thalathat al-Usul: The Unabridged Scholarly Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #FDFBF9; -webkit-tap-highlight-color: transparent; }
-        .arabic { font-family: 'Amiri', serif; line-height: 2.2; }
+        body { font-family: 'Inter', sans-serif; background-color: #FAF9F6; color: #1A1614; overflow-x: hidden; }
+        .arabic { font-family: 'Amiri', serif; line-height: 2.5; text-align: right; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .transition-all-400 { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #EBDCCB; }
+        .content-card { box-shadow: 0 25px 60px -15px rgba(74, 55, 40, 0.12); }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect } = React;
 
-        const bookContent = [
+        const bookData = [
             {
-                title: "1. The Four Obligatory Matters",
+                id: 1,
+                category: "Introduction",
+                title: "The Four Obligatory Matters",
                 arabic: "بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ. اعْلَمْ رَحِمَكَ اللهُ أَنَّهُ يَجِبُ عَلَيْنَا تَعَلُّمُ أَرْبَعِ مَسَائِلَ: الأُولَى: الْعِلْمُ؛ وَهُوَ مَعْرِفَةُ اللهِ، وَمَعْرِفَةُ نَبِيِّهِ، وَمَعْرِفَةُ دِينِ الإِسْلامِ بِالأَدِلَّةِ. الثَّانِيَةُ: الْعَمَلُ بِهِ. الثَّالِثَةُ: الدَّعْوَةُ إِلَيْهِ. الرَّابِعَةُ: الصَّبْرُ عَلَى الأَذَى فِيهِ.",
-                phonics: "Bismillāhir-Rahmānir-Rahīm. I'lam rahimakallāh annahu yajibu 'alaynā ta'allumu arba'i masā'il: Al-ūlā: Al-ilm; wa huwa ma'rifatullāh, wa ma'rifatu nabiyyih, wa ma'rifatu dīnil-islāmi bil-adillah. Al-thāniyah: Al-'amalu bih. Al-thālithah: Al-da'watu ilayh. Al-rābi'ah: Al-sabru 'alal-adhā fīh.",
-                english: "In the name of Allah, the Most Merciful. Know, may Allah have mercy on you, that it is obligatory for us to learn four matters: 1. Knowledge. 2. Action. 3. Calling to it. 4. Patience.",
-                explanation: "Sheikh Ibn Uthaymeen: Knowledge must precede speech and action. Evidence: Surah al-Asr. Imam Shafi'i said this Surah is enough proof for all mankind."
+                phonics: "Bismillāhir-Rahmānir-Rahīm. I'lam rahimakallāh annahu yajibu 'alaynā ta'allumu arba'i masā'il: Al-ūlā: Al-ilm... Al-thāniyah: Al-'amalu bih. Al-thālithah: Al-da'watu ilayh. Al-rābi'ah: Al-sabru 'alal-adhā fīh.",
+                english: "In the name of Allah, the Most Merciful. Know, may Allah have mercy on you, that it is obligatory for us to learn four matters:\n1. Knowledge (Knowledge of Allah, His Prophet, and the religion with evidence).\n2. Action upon it.\n3. Calling to it.\n4. Patience upon the harm encountered therein.",
+                scholarNote: "Knowledge is the foundation for speech and action. Scholarly commentaries (Ibn Uthaymeen) emphasize that these four traits are the only way to escape the 'Loss' mentioned in Surah al-Asr.",
+                evidence: "Evidence: Surah al-Asr: 'By the time, indeed mankind is in loss...'. Imam Shafi'i said: 'If Allah had only revealed this Surah as a proof for His creation, it would have sufficed them.'"
             },
             {
-                title: "2. Purpose and Tawhid",
-                arabic: "الأُولَى: أَنَّ اللهَ خَلَقَنَا، وَرَزَقَنَا، وَلَمْ يَتْرُكْنَا هَمَلاً، بَلْ أَرْسَلَ إِلَيْنَا رَسُولاً، فَمَنْ أَطَاعَهُ دَخَلَ الْجَنَّةَ، وَمَنْ عَصَاهُ دَخَلَ النَّارَ. الثَّانِيَةُ: أَنَّ اللهَ لا يَرْضَى أَنْ يُشْرَكَ مَعَهُ أَحَدٌ فِي عِبَادَتِهِ. الثَّالِثَةُ: أَنَّ مَنْ أَطَاعَ الرَّسُولَ، وَوَحَّدَ اللهَ لا يَجُوزُ لَهُ مُوَالاةُ مَنْ حَادَّ اللهَ وَرَسُولَهُ.",
-                phonics: "Al-ūlā: Annallāha khalaqanā... Al-thāniyah: Annallāha lā yardā an yushraka ma'ahu ahad... Al-thālithah: Anna man atā'ar-rasūla wa wahhadallāha lā yajūzu lahu muwālātu man hāddallāha wa rasūlah.",
-                english: "1. Allah created us and provided for us. 2. Allah hates Shirk. 3. Loyalty must be to Allah and His Messenger alone.",
-                explanation: "Matter #2 is the essence of worship. Shifting any worship to angels or prophets is rejected. Matter #3 is about Loyalty and Disavowal (Al-Wala' wal-Bara')."
+                id: 2,
+                category: "Introduction",
+                title: "The Three Essential Obligations",
+                arabic: "اعْلَمْ رَحِمَكَ اللهُ أَنَّهُ يَجِبُ عَلَى كُلِّ مُسْلِمٍ وَمُسْلِمَةٍ تَعَلُّمُ هَذِهِ الثَّلاثِ مَسَائِلِ، وَالْعَمَلُ بِهِنَّ: الأُولَى: أَنَّ اللهَ خَلَقَنَا، وَرَزَقَنَا، وَلَمْ يَتْرُكْنَا هَمَلاً، بَلْ أَرْسَلَ إِلَيْنَا رَسُولاً... الثَّانِيَةُ: أَنَّ اللهَ لا يَرْضَى أَنْ يُشْرَكَ مَعَهُ أَحَدٌ فِي عِبَادَتِهِ... الثَّالِثَةُ: أَنَّ مَنْ أَطَاعَ الرَّسُولَ، وَوَحَّدَ اللهَ لا يَجُوزُ لَهُ مُوَالاةُ مَنْ حَادَّ اللهَ وَرَسُولَهُ.",
+                phonics: "I'lam rahimakallāh... Al-ūlā: Annallāha khalaqanā... Al-thāniyah: Annallāha lā yardā... Al-thālithah: Anna man atā'ar-rasūla wa wahhadallāh...",
+                english: "1. Allah created us and provided for us, sending a Messenger. 2. Allah is not pleased with Shirk. 3. Loyalty must be for Allah and His Messenger alone.",
+                scholarNote: "Point 1 concerns Rububiyyah (Lordship). Point 2 concerns Uluhiyyah (Worship). Point 3 concerns Al-Wala' wal-Bara' (Loyalty and Disavowal).",
+                evidence: "Proof 1: Surah al-Muzzammil:15. Proof 2: Surah al-Jinn:18. Proof 3: Surah al-Mujadilah:22. This establishes that even the most pious angel or prophet cannot be worshipped with Allah."
             },
             {
-                title: "3. Foundation 1: Knowledge of the Lord",
+                id: 3,
+                category: "Introduction",
+                title: "The Hanifiyyah",
+                arabic: "اعْلَمْ أَرْشَدَكَ اللهُ لِطَاعَتِهِ: أَنَّ الْحَنِيفِيَّةَ مِلَّةَ إِبْرَاهِيمَ: أَنْ تَعْبُدَ اللهَ وَحْدَهُ، مُخْلِصًا لَهُ الدِّينَ. وَبِذَلِكَ أَمَرَ اللهُ جَمِيعَ النَّاسِ، وَخَلَقَهُمْ لَهَا.",
+                phonics: "I'lam arshadakallāh... Annal-hanīfiyyata millata Ibrāhīm: An ta'budallāha wahdahu...",
+                english: "The Hanifiyyah is the religion of Ibrahim: that you worship Allah alone, making the religion pure for Him. This is why Allah created all people.",
+                scholarNote: "Hanifiyyah means turning away from Shirk towards Tawhid. This is the natural fitrah of the human soul.",
+                evidence: "Proof: 'And I did not create the jinn and mankind except to worship Me' (Surah adh-Dhariyat: 56). Worship here means Tawhid."
+            },
+            {
+                id: 4,
+                category: "Foundation 1",
+                title: "Knowledge of the Lord",
                 arabic: "الأَصْلُ الأَوَّلُ: مَعْرِفَةُ الرَّبِّ. فَإِذَا قِيلَ لَكَ: مَنْ رَبُّكَ؟ فَقُلْ: رَبِّيَ اللهُ الَّذِي رَبَّاني وَرَبَّى جَمِيعَ الْعَالَمِينَ بِنِعَمِهِ، وَهُوَ مَعْبُودِي لَيْسَ لِي مَعْبُودٌ سِوَاهُ.",
-                phonics: "Al-aslul-awwal: Ma'rifatur-Rabb. Man Rabbuk? Fa qul: Rabbiyallāhul-ladhī rabbānī...",
-                english: "First Principle: Knowledge of the Lord. Answer: 'My Lord is Allah, who nurtured me and all of creation. He is the one I worship.'",
-                explanation: "This is the first question of the grave. Recognising Allah as the Nurturer (Rabb) requires worshipping Him alone (Ilah).",
-                evidence: "Evidence: 'Praise be to Allah, Lord of the Worlds' (Surah al-Fatiha: 2)."
+                phonics: "Al-aslul-awwal: Ma'rifatur-Rabb... Fa qul: Rabbiyallāhul-ladhī rabbānī...",
+                english: "First Principle: Knowledge of the Lord. 'My Lord is Allah, who nurtured me and all of creation with His favors. He is the one I worship.'",
+                scholarNote: "Recognizing Allah as the Nurturer (Rabb) is the logical proof that He alone deserves worship (Ilah).",
+                evidence: "Proof: 'Praise be to Allah, Lord of the Worlds' (1:2). Everything other than Allah is part of 'the worlds' and He is their Lord."
             },
             {
-                title: "4. Types of Worship and Proofs",
-                arabic: "وَمِنْهُ: الدُّعَاءُ، وَالْخَوْفُ، وَالرَّجَاءُ، وَالتَّوَكُّلُ، وَالرَّغْبَةُ، وَالرَّهْبَةُ... وَالدَّلِيلُ قَوْلُهُ تَعَالَى: {وَأَنَّ الْمَسَاجِدَ لِلَّهِ فَلا تَدْعُوا مَعَ اللهِ أَحَدًا}.",
-                phonics: "Wa minhu: Al-du'ā, wal-khawf, wal-rajā, wat-tawakkul... Wa dalīlu: Wa annal-masājida lillāhi falā tad'ū ma'allāhi ahadā.",
-                english: "Worship includes: Du'a, Fear, Hope, Trust, Longing, Dread, Humility. Evidence: 'The mosques are for Allah, so do not invoke anyone with Allah.'",
-                explanation: "Major Shirk is directing any of these to other than Allah. Every form of worship mentioned here has a specific verse as proof in the book.",
-                evidence: "Du'a Dalil: 40:60. Khawf Dalil: 3:175. Sacrifice Dalil: 6:162."
+                id: 5,
+                category: "Foundation 1",
+                title: "The Signposts of the Lord",
+                arabic: "وَمِنْ آيَاتِهِ اللَّيْلُ، وَالنَّهَارُ، وَالشَّمْسُ، وَالْقَمَرُ. وَمِنْ مَخْلُوقَاتِهِ السَّمَاوَاتُ السَّبْعُ، وَالأَرَضُونَ السَّبْعُ، وَمَا فِيهِنَّ، وَمَا بَيْنَهُمَا.",
+                phonics: "Wa min āyātihil-laylu, wan-nahāru, wash-shamsu, wal-qamaru...",
+                english: "His signs include the night, the day, the sun, and the moon. His creations include the seven heavens and the seven earths.",
+                scholarNote: "Signs (Aayaat) are those things that change (like day/night), while Creations (Makhluqaat) are the vast structures themselves. Both prove His Rububiyyah.",
+                evidence: "Proof: 'And of His signs are the night and the day and the sun and the moon...' (Surah Fussilat: 37)."
             },
             {
-                title: "5. Foundation 2: Knowledge of Islam",
+                id: 6,
+                category: "Foundation 1",
+                title: "Types of Worship (1)",
+                arabic: "وَأَنْوَاعُ الْعِبَادَةِ الَّتِي أَمَرَ اللهُ بِهَا: مِثْلُ الإِسْلامِ، وَالإِيمَانِ، وَالإِحْسَانِ، وَمِنْهُ: الدُّعَاءُ، وَالْخَوْفُ، وَالرَّجَاءُ، وَالتَّوَكُّلُ.",
+                phonics: "Wa anwā'ul-ibādatil-latī amarallāhu bihā... Al-du'ā, wal-khawf, wal-rajā, wat-tawakkul...",
+                english: "Forms of worship commanded by Allah: Islam, Iman, Ihsan, and: Supplication, Fear, Hope, and Trust.",
+                scholarNote: "Worship ('Ibadah) is everything Allah loves. Directing any of these to others is Shirk Akbar. Du'a is the brain/core of worship.",
+                evidence: "Du'a proof: 40:60. Fear (Khawf) proof: 3:175. Hope (Raja) proof: 18:110. Trust (Tawakkul) proof: 5:23 & 65:3."
+            },
+            {
+                id: 7,
+                category: "Foundation 1",
+                title: "Types of Worship (2)",
+                arabic: "وَمِنْهُ: الرَّغْبَةُ، وَالرَّهْبَةُ، وَالْخُشُوعُ، وَالْخَشْيَةُ، وَالإِنَابَةُ، وَالاسْتِعَانَةُ، وَالاسْتِعَاذَةُ، وَالاسْتِغَاثَةُ.",
+                phonics: "Al-raghbah, wal-rahbah, wal-khushū', wal-khashyah, wal-inābah, wal-isti'ānah, wal-isti'ādhah, wal-istighāthah.",
+                english: "Also: Longing, Dread, Humility, Awe, Repentance, Seeking help, Seeking refuge, and Seeking rescue.",
+                scholarNote: "Heart-actions are the most dangerous to direct toward others. Seeking help (Isti'anah) in what only Allah can do must be for Him alone.",
+                evidence: "Raghbah/Rahbah/Khushu: 21:90. Khashyah: 2:150. Inabah: 39:54. Isti'anah: 1:5. Isti'adhah: 113:1. Istighathah: 8:9."
+            },
+            {
+                id: 8,
+                category: "Foundation 1",
+                title: "Types of Worship (3)",
+                arabic: "وَمِنْهُ: الذَّبْحُ، وَالنَّذْرُ. وَالدَّلِيلُ قَوْلُهُ تَعَالَى: {قُلْ إِنَّ صَلاتِي وَنُسُكِي وَمَحْيَايَ وَمَمَاتِي لِلَّهِ رَبِّ الْعَالَمِينَ}.",
+                phonics: "Wa minhu: Al-dhabhu, wan-nadhru. Wa dalīlu: Qul inna salātī wa nusukī...",
+                english: "Also: Sacrifice (Slaughtering) and Vows. 'Say: Indeed my prayer and my sacrifice... are for Allah.'",
+                scholarNote: "Slaughtering for a grave, a saint, or a jinn is Major Shirk that takes one out of the fold of Islam.",
+                evidence: "Sacrifice proof: 6:162. Vows (Nadhr) proof: 76:7: 'They fulfill their vows and fear a Day whose evil will be widespread.'"
+            },
+            {
+                id: 9,
+                category: "Foundation 2",
+                title: "Knowledge of Islam",
                 arabic: "الأَصْلُ الثَّانِي: مَعْرِفَةُ دِينِ الإِسْلامِ بِالأَدِلَّةِ، وَهُوَ: الاسْتِسْلامُ لِلَّهِ بِالتَّوْحِيدِ، وَالانْقِيَادُ لَهُ بِالطَّاعَةِ، وَالْبَرَاءَةُ مِنَ الشِّرْكِ وَأَهْلِهِ. وَهُوَ ثَلاثُ مَرَاتِبَ: الإِسْلامُ، وَالإِيمَانُ، وَالإِحْسَانُ.",
-                phonics: "Al-asluth-thānī: Ma'rifatu dīnil-islām... Al-istislāmu lillāhi bit-tawhīd, wal-inqiyādu lahu bit-tā'ah, wal-barā'atu minash-shirki wa ahlih.",
-                english: "Second Principle: Knowledge of Islam. It is submission with Tawhid, obedience, and disavowing Shirk. Levels: Islam, Iman, and Ihsan.",
-                explanation: "Islam is the 5 physical pillars. Iman is the 6 internal pillars of faith. Ihsan is excellence in worship.",
-                evidence: "The Hadith of Jibril is the foundation for understanding these three levels."
+                phonics: "Al-asluth-thānī: Ma'rifatu dīnil-islām... Al-istislāmu lillāhi bit-tawhīd, wal-inqiyādu lahu bit-tā'ah...",
+                english: "Second Principle: Knowledge of Islam. Submission with Tawhid, yielding in obedience, and disavowing Shirk. Levels: Islam, Iman, and Ihsan.",
+                scholarNote: "Islam has a social/political pillar: Al-Barā'ah (Disavowal). You cannot claim Tawhid while keeping spiritual love for idols and Shirk.",
+                evidence: "Evidence for the 5 Pillars: The Hadith of Ibn Umar. Evidence for the levels: The Hadith of Jibril."
             },
             {
-                title: "6. Foundation 3: Knowledge of the Prophet",
-                arabic: "الأَصْلُ الثَّالِثُ: مَعْرِفَةُ نَبِيِّكُمْ مُحَمَّدٍ صلى الله عليه وسلم، وَهُوَ: مُحَمَّدُ بْنُ عَبْدِ اللهِ... عُمْرُهُ ثَلاثٌ وَسِتُّونَ سَنَةً... بُعِثَ بِالتَّوْحِيدِ وَأَنْذَرَ عَنِ الشِّرْكِ.",
-                phonics: "Al-asluth-thālith: Ma'rifatu nabiyyikum Muhammad... 'umruhu thalāthun wa sittūna sanah... bu'itha bit-tawhīd...",
-                english: "Third Principle: Knowledge of the Prophet Muhammad ﷺ. He lived 63 years. Prophet at 40, Messenger for 23. Sent to warn against Shirk and call to Tawhid.",
-                explanation: "Every Muslim must know the Prophet's lineage, his mission in Makkah (13 years), and his Hijrah to Madinah.",
-                evidence: "Dalil: 'O you covered in garments, arise and warn!' (Surah al-Muddathir: 1-2)."
+                id: 10,
+                category: "Foundation 2",
+                title: "Level 2: Al-Iman (Faith)",
+                arabic: "الْمَرْتَبَةُ الثَّانِيَةُ: الإِيمَانُ، وَهُوَ بِضْعٌ وَسَبْعُونَ شُعْبَةً... وَأَرْكَانُهُ سِتَّةٌ: أَنْ تُؤْمِنَ بِاللهِ، وَمَلائِكَتِهِ، وَكُتُبِهِ، وَرُسُلِهِ، وَالْيَوْمِ الآخِرِ، وَتُؤْمِنَ بِالْقَدَرِ خَيْرِهِ وَشَرِّهِ.",
+                phonics: "Al-martabathuth-thāniyah: Al-īmān... wa arkānuhu sittah...",
+                english: "Level 2: Iman. It has 70+ branches. Its pillars are six: Belief in Allah, Angels, Books, Messengers, the Last Day, and Pre-decree (Qadr).",
+                scholarNote: "Faith is belief in the heart, speech on the tongue, and action of the limbs. It increases with obedience and decreases with sin.",
+                evidence: "Proof for 6 Pillars: 'Righteousness is not that you turn your faces... but righteousness is [in] one who believes in Allah...' (2:177). Proof for Qadr: 'Indeed, all things We created with predestination' (54:49)."
             },
             {
-                title: "7. Resurrection and Taghut",
-                arabic: "وَجَمِيعُ النَّاسِ يَبْعَثُونَ بَعْدَ الْمَوْتِ... وَالطَّوَاغِيتُ كَثِيرَةٌ، وَرُؤُوسُهُمْ خَمْسَةٌ: إِبْلِيسُ لَعَنَهُ اللهُ، وَمَنْ عُبِدَ وَهُوَ رَاضٍ، وَمَنْ ادَّعَى شَيْئاً مِنْ عِلْمِ الْغَيْبِ...",
-                phonics: "Wa jamī'un-nāsi yab'athūna ba'dal-mawt... wal-tawāghītu kathīrah... wa ru'ūsuhum khamsah...",
-                english: "Resurrection is real; denying it is Kufr. We must reject the Taghut (false deities). The heads of Taghut are five, starting with Satan.",
-                explanation: "The book ends with the essence of the Shahadah: Rejecting false gods and affirming belief in Allah alone.",
-                evidence: "Dalil: 'Whoever disbelieves in Taghut and believes in Allah has grasped the most trustworthy handhold' (2:256)."
+                id: 11,
+                category: "Foundation 2",
+                title: "Level 3: Al-Ihsan (Excellence)",
+                arabic: "الْمَرْتَبَةُ الثَّالِثَةُ: الإِحْسَانُ، رُكْنٌ وَاحِدٌ، وَهُوَ: أَنْ تَعْبُدَ اللهَ كَأَنَّكَ تَرَاهُ، فَإِنْ لَمْ تَكُنْ تَرَاهُ فَإِنَّهُ يَرَاكَ.",
+                phonics: "Al-martabathuth-thālithah: Al-ihsān, ruknun wāhid...",
+                english: "Level 3: Ihsan. It has one pillar: To worship Allah as if you see Him, and if you do not see Him, then indeed He sees you.",
+                scholarNote: "This is the highest level. It produces constant consciousness (Muraqabah) and absolute sincerity (Ikhlas).",
+                evidence: "Proof: 'Indeed, Allah is with those who fear Him and those who are doers of good' (16:128) and 'And rely upon the Exalted in Might, the Merciful, Who sees you when you arise' (26:217-218)."
+            },
+            {
+                id: 12,
+                category: "Foundation 3",
+                title: "Knowledge of the Prophet ﷺ",
+                arabic: "الأَصْلُ الثَّالثُ: مَعْرِفَةُ نَبِيِّكُمْ مُحَمَّدٍ صلى الله عليه وسلم، وَهُوَ: مُحَمَّدُ بْنُ عَبْدِ اللهِ بْنِ عَبْدِ الْمُطَّلِبِ بْنِ هَاشِمٍ... عُمْرُهُ ثَلاثٌ وَسِتُّونَ سَنَةً... بُعِثَ بِالتَّوْحِيدِ وَأَنْذَرَ عَنِ الشِّرْكِ.",
+                phonics: "Al-asluth-thālith: Ma'rifatu nabiyyikum Muhammad... 'umruhu thalāthun wa sittūna sanah...",
+                english: "Third Principle: Knowledge of the Prophet ﷺ. He lived 63 years. Prophet at 40, Messenger for 23. Sent with Tawhid to warn against Shirk.",
+                scholarNote: "He spent 13 years in Makkah calling only to Tawhid before the migration (Hijrah) to Madinah to establish the Shariah.",
+                evidence: "Prophethood: Surah al-Alaq (Iqra). Messengership: Surah al-Muddathir: 'O you covered in garments, arise and warn!' Meaning: warn against Shirk and call to Tawhid."
+            },
+            {
+                id: 13,
+                category: "Conclusion",
+                title: "The Resurrection & Accounting",
+                arabic: "وَجَمِيعُ النَّاسِ يَبْعَثُونَ بَعْدَ الْمَوْتِ... وَمَنْ كَذَّبَ بِالْبَعْثِ كَفَرَ. وَالدَّلِيلُ قَوْلُهُ تَعَالَى: {زَعَمَ الَّذِينَ كَفَرُوا أَن لَّن يُبْعَثُوا قُلْ بَلَى وَرَبِّي لَتُبْعَثُنَّ}.",
+                phonics: "Wa jamī'un-nāsi yab'athūna ba'dal-mawt... wa man kadhdhaba bil-ba'thi kafar.",
+                english: "All will be resurrected after death. Denying the Resurrection is disbelief (Kufr). Every nation had a Messenger calling to Tawhid.",
+                scholarNote: "Faith in the Last Day is a pillar of Iman. The goal of every Messenger from Nuh to Muhammad was to command the worship of Allah and avoid the Taghut.",
+                evidence: "Proof: 'The disbelievers claim that they will never be resurrected. Say, Yes, by my Lord, you will surely be resurrected' (64:7)."
+            },
+            {
+                id: 14,
+                category: "Conclusion",
+                title: "The Rejection of Taghut",
+                arabic: "وَالطَّوَاغِيتُ كَثِيرَةٌ، وَرُؤُوسُهُمْ خَمْسَةٌ: إِبْلِيسُ لَعَنَهُ اللهُ، وَمَنْ عُبِدَ وَهُوَ رَاضٍ، وَمَنْ دَعَا النَّاسَ إِلَى عِبَادَةِ نَفْسِهِ، وَمَنْ ادَّعَى شَيْئاً مِنْ عِلْمِ الْغَيْبِ، وَمَنْ حَكَمَ بِغَيْرِ مَا أَنْزَلَ اللهُ.",
+                phonics: "Wal-tawāghītu kathīrah... wa ru'ūsuhum khamsah...",
+                english: "The Taghut are many, and their heads are five: Iblis, whoever is worshipped and is pleased, whoever calls people to worship him, whoever claims unseen knowledge, and whoever judges by other than Allah's law.",
+                scholarNote: "Rejecting the Taghut (everything worshipped beside Allah) is the first half of the Shahadah. Tawhid is invalid without this rejection.",
+                evidence: "Proof: 'There is no compulsion in religion... whoever disbelieves in Taghut and believes in Allah has grasped the most trustworthy handhold' (2:256)."
             }
         ];
 
         const quizQuestions = [
-            {
-                q: "What is the first obligatory matter in the book?",
-                a: ["Prayer", "Action", "Knowledge", "Patience"],
-                c: 2,
-                e: "Knowledge (Ilm) must always come before speech and action."
-            },
-            {
-                q: "How many fundamental principles (Usul) are there in the book?",
-                a: ["One", "Three", "Five", "Ten"],
-                c: 1,
-                e: "The three foundations: Knowledge of the Lord, the Religion, and the Prophet."
-            },
-            {
-                q: "Directing any form of worship (like Du'a) to other than Allah is:",
-                a: ["Minor Shirk", "Innovation", "Major Shirk", "Permissible"],
-                c: 2,
-                e: "Giving any form of worship to others is Shirk Akbar."
-            },
-            {
-                q: "At what age was Muhammad ﷺ made a Prophet?",
-                a: ["25", "40", "63", "13"],
-                c: 1,
-                e: "He received revelation at the age of 40."
-            }
+            { q: "What is the first obligatory matter to learn?", a: ["Action", "Patience", "Knowledge", "Dawah"], c: 2, e: "Knowledge of Allah, His Prophet, and Islam must precede any speech or action." },
+            { q: "Which Surah summarizes the four foundations of success?", a: ["Al-Fatiha", "Al-Asr", "Al-Ikhlas", "Al-Mulk"], c: 1, e: "Imam Shafi'i said Surah al-Asr is a sufficient proof for mankind." },
+            { q: "Knowledge must be 'with evidence'. What does this mean?", a: ["From logic", "From ancestors", "From Quran & Sunnah", "From personal opinion"], c: 2, e: "Evidence refers to revelation, protecting from blind imitation." },
+            { q: "What does 'hamala' (neglected) mean in the context of creation?", a: ["Left in wealth", "Left without purpose or messenger", "Left in Paradise", "Left in sorrow"], c: 1, e: "Mankind was created for worship and provided with guidance." },
+            { q: "Allah is not pleased that Shirk be committed even with:", a: ["Angels or Prophets", "Stones", "Animals", "Wealth"], c: 0, e: "Even the highest creation cannot share in Allah's right to worship." },
+            { q: "The word 'Aalamin' (Worlds) refers to:", a: ["Only humans", "Only angels", "Everything other than Allah", "Only the earth"], c: 2, e: "Allah is the Lord of all things that exist." },
+            { q: "Directing 'Du'a' (Supplication) to a saint or grave is:", a: ["Minor Shirk", "Innovation", "Major Shirk", "Permissible"], c: 2, e: "Du'a is the essence of worship; directing it to others is Shirk Akbar." },
+            { q: "Slaughtering (Sacrifice) for other than Allah is:", a: ["A minor mistake", "Cursed by the Prophet", "A cultural custom", "Recommended"], c: 1, e: "Sacrifice is an act of worship belonging only to Allah." },
+            { q: "How many levels (Maratib) are there in the religion?", a: ["One", "Two", "Three", "Five"], c: 2, e: "Islam, Iman, and Ihsan." },
+            { q: "Which level is 'To worship Allah as if you see Him'?", a: ["Islam", "Iman", "Ihsan", "Taqwa"], c: 2, e: "Ihsan is the level of perfection and excellence." },
+            { q: "How many pillars are there for 'Al-Iman'?", a: ["Five", "Six", "Seven", "Ten"], c: 1, e: "Faith in Allah, Angels, Books, Messengers, Last Day, Qadr." },
+            { q: "The definition of Islam includes:", a: ["Only prayer", "Submission with Tawhid, Obedience, & Disavowal of Shirk", "Only giving charity", "Just being kind"], c: 1, e: "Islam is a complete submission of belief, action, and loyalty." },
+            { q: "At what age was Muhammad ﷺ made a Prophet?", a: ["25", "33", "40", "63"], c: 2, e: "He received the first revelation (Iqra) at age 40." },
+            { q: "Which Surah made him ﷺ a 'Messenger' (to warn people)?", a: ["Al-Alaq", "Al-Fatiha", "Al-Muddathir", "Al-Kahf"], c: 2, e: "Prophethood started with Al-Alaq, Messengership with Al-Muddathir." },
+            { q: "How many years was he ﷺ calling to Tawhid in Makkah?", a: ["5", "10", "13", "23"], c: 2, e: "13 years in Makkah, followed by 10 years in Madinah." },
+            { q: "Belief in the Resurrection is:", a: ["A minor part of faith", "A pillar of Iman", "Optional", "Only for scholars"], c: 1, e: "Belief in the Last Day is one of the six pillars of Iman." },
+            { q: "What is the 'Trustworthy Handhold'?", a: ["Charity", "Rejecting Taghut and Believing in Allah", "Strength", "Lineage"], c: 1, e: "Tawhid is incomplete without the rejection of falsehood." },
+            { q: "How many 'heads' of Taghut are listed in the book?", a: ["Three", "Five", "Seven", "Nine"], c: 1, e: "Iblis, the one worshipped and pleased, the claimer of unseen knowledge, etc." },
+            { q: "Denying the Resurrection after death is:", a: ["Fisq", "Bida'h", "Kufr (Disbelief)", "A mistake"], c: 2, e: "Denying it is a rejection of Allah's promise and power." },
+            { q: "True or False: Tawhid is valid if you believe in Allah but respect idols?", a: ["True", "False"], c: 1, e: "One must disavow Shirk and its people for Tawhid to be valid." }
         ];
 
         function App() {
             const [page, setPage] = useState(0);
-            const [mode, setMode] = useState('study');
-            const [showPhonics, setShowPhonics] = useState(false);
+            const [mode, setMode] = useState('study'); // study, quiz
+            const [focus, setFocus] = useState(false);
+            const [phonics, setPhonics] = useState(false);
             
             // Quiz State
-            const [qIndex, setQIndex] = useState(0);
+            const [qIdx, setQIdx] = useState(0);
             const [score, setScore] = useState(0);
             const [ans, setAns] = useState(null);
             const [done, setDone] = useState(false);
@@ -119,106 +206,194 @@
             const handleAns = (i) => {
                 if (ans !== null) return;
                 setAns(i);
-                if (i === quizQuestions[qIndex].c) setScore(score + 1);
+                if (i === quizQuestions[qIdx].c) setScore(score + 1);
             };
 
-            const resetQuiz = () => {
-                setQIndex(0); setScore(0); setAns(null); setDone(false);
-            };
+            const resetQuiz = () => { setQIdx(0); setScore(0); setAns(null); setDone(false); };
 
             return (
-                <div className="min-h-screen">
-                    <header className="sticky top-0 bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between shadow-sm z-50">
-                        <div className="flex items-center gap-2">
-                            <div className="bg-[#4A3728] text-white p-2 rounded-lg font-black text-xs">US</div>
-                            <h1 className="text-sm font-bold text-[#3E2723]">Usul Master</h1>
+                <div className="min-h-screen flex flex-col">
+                    {/* Header */}
+                    <header className={`glass-header sticky top-0 z-50 px-5 py-4 flex items-center justify-between transition-all-400 ${focus ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+                        <div className="flex items-center gap-3">
+                            <div className="bg-[#4A3728] text-white w-10 h-10 rounded-2xl flex items-center justify-center font-black shadow-lg">U</div>
+                            <div>
+                                <h1 className="text-sm font-black text-[#3E2723] uppercase tracking-tighter">Usul Master</h1>
+                                <p className="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Unabridged Edition</p>
+                            </div>
                         </div>
-                        <div className="flex bg-stone-100 p-1 rounded-xl">
-                            <button onClick={() => setMode('study')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${mode === 'study' ? 'bg-white shadow text-[#4A3728]' : 'text-stone-400'}`}>Study</button>
-                            <button onClick={() => setMode('quiz')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${mode === 'quiz' ? 'bg-[#4A3728] text-white shadow' : 'text-stone-400'}`}>Quiz</button>
+                        <div className="flex bg-stone-100 p-1 rounded-2xl border border-stone-200">
+                            <button onClick={() => setMode('study')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${mode === 'study' ? 'bg-white shadow-sm text-[#4A3728]' : 'text-stone-400'}`}>Learn</button>
+                            <button onClick={() => setMode('quiz')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${mode === 'quiz' ? 'bg-[#4A3728] text-white shadow-md' : 'text-stone-400'}`}>Test</button>
                         </div>
                     </header>
 
-                    <main className="max-w-xl mx-auto p-4 md:pt-10">
+                    {/* Content */}
+                    <main className="flex-1 max-w-2xl mx-auto w-full p-4 md:pt-10">
                         {mode === 'study' ? (
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-end mb-2">
-                                    <span className="text-[10px] font-black uppercase text-stone-400 tracking-widest">Part {page + 1} / {bookContent.length}</span>
-                                    <button onClick={() => setShowPhonics(!showPhonics)} className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border transition-all ${showPhonics ? 'bg-[#4A3728] text-white' : 'bg-white text-stone-400 border-stone-200'}`}>Phonics</button>
+                            <div className="space-y-6 pb-44">
+                                <div className="flex justify-between items-center px-2">
+                                    <button onClick={() => setFocus(!focus)} className="text-[10px] font-black uppercase tracking-wider bg-white border border-stone-200 px-4 py-2 rounded-xl text-stone-400 hover:text-[#4A3728] transition-colors shadow-sm">
+                                        {focus ? 'Restore Controls' : 'Focus Mode'}
+                                    </button>
+                                    <button onClick={() => setPhonics(!phonics)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border transition-all shadow-sm ${phonics ? 'bg-[#4A3728] text-white border-[#4A3728]' : 'bg-white text-stone-400 border-stone-200'}`}>
+                                        Phonics Helper
+                                    </button>
                                 </div>
 
-                                <div className="bg-white rounded-[2rem] border border-stone-200 shadow-xl overflow-hidden p-8 md:p-12">
-                                    <h2 className="text-[10px] font-black uppercase text-[#4A3728] tracking-widest mb-10">{bookContent[page].title}</h2>
+                                <div className="bg-white rounded-[2.5rem] border border-stone-200 content-card p-8 md:p-14 relative transition-all-400">
+                                    <div className="flex items-center gap-2 mb-10 opacity-60">
+                                        <div className="w-1 h-4 bg-[#4A3728] rounded-full"></div>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{bookData[page].category} • {bookData[page].title}</span>
+                                    </div>
                                     
-                                    <div className="text-right mb-12" dir="rtl">
-                                        <p className="arabic text-3xl md:text-5xl text-[#2C241E] leading-[2.2]">
-                                            {bookContent[page].arabic}
+                                    <div dir="rtl" className="mb-14">
+                                        <p className="arabic text-3xl md:text-5xl text-[#1A1614] leading-[2.4] antialiased whitespace-pre-line tracking-tight">
+                                            {bookData[page].arabic}
                                         </p>
                                     </div>
 
-                                    {showPhonics && (
-                                        <div className="bg-stone-50 p-6 rounded-2xl border border-dashed border-stone-200 mb-10">
-                                            <p className="text-xs text-stone-400 font-mono italic leading-relaxed">{bookContent[page].phonics}</p>
+                                    {phonics && (
+                                        <div className="bg-stone-50 p-6 rounded-3xl border border-dashed border-stone-200 mb-12 animate-in fade-in duration-500">
+                                            <p className="text-[13px] text-stone-500 font-mono italic leading-relaxed">{bookData[page].phonics}</p>
                                         </div>
                                     )}
 
-                                    <div className="space-y-8">
-                                        <p className="text-lg text-[#5D4037] italic font-serif leading-relaxed pl-5 border-l-2 border-stone-200">
-                                            "{bookContent[page].english}"
-                                        </p>
+                                    <div className="space-y-12">
+                                        <div className="relative border-l-2 border-[#EBDCCB] pl-6">
+                                            <p className="text-xl md:text-2xl text-[#5D4037] font-serif leading-relaxed italic whitespace-pre-line relative z-10">
+                                                "{bookData[page].english}"
+                                            </p>
+                                        </div>
 
-                                        <div className="pt-8 border-t border-stone-100 space-y-4">
-                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400">Scholarly Explanation</h3>
-                                            <p className="text-sm text-stone-600 leading-relaxed">{bookContent[page].explanation}</p>
-                                            {bookContent[page].evidence && (
-                                                <div className="bg-stone-50 p-4 rounded-xl border border-stone-100 text-[11px] text-stone-400 italic">
-                                                    {bookContent[page].evidence}
+                                        <div className="pt-12 border-t border-stone-100 space-y-10">
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Scholarly Overview</span>
+                                                    <div className="flex-1 h-[1px] bg-stone-100"></div>
                                                 </div>
-                                            )}
+                                                <p className="text-[15px] text-[#4A3728] leading-loose font-medium">{bookData[page].scholarNote}</p>
+                                            </div>
+
+                                            <div className="bg-[#FAF8F5] p-8 rounded-[2rem] border border-[#EBDCCB]/60 shadow-inner">
+                                                <div className="flex items-center gap-2 mb-5">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8D6E63" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                                                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[#8D6E63]">Detailed Proof & Context</h3>
+                                                </div>
+                                                <p className="text-sm text-[#795548] leading-relaxed mb-6 italic opacity-90">{bookData[page].detailedSharh}</p>
+                                                
+                                                <div className="flex items-center gap-3 pt-6 border-t border-[#EBDCCB]/30 text-[#8D6E63]">
+                                                    <span className="text-[10px] font-black uppercase tracking-tighter">Ad-Dalil (The Proof):</span>
+                                                    <p className="text-[11px] italic flex-1 leading-relaxed">{bookData[page].evidence}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-white/95 backdrop-blur-md border border-stone-200 p-4 rounded-3xl shadow-2xl flex items-center justify-between z-40">
-                                    <button onClick={() => setPage(Math.max(0, page - 1))} className="w-12 h-12 flex items-center justify-center rounded-xl hover:bg-stone-50 transition-all disabled:opacity-20" disabled={page === 0}>←</button>
-                                    <div className="flex gap-1">
-                                        {bookContent.map((_, i) => (
-                                            <div key={i} className={`h-1.5 rounded-full transition-all ${i === page ? 'w-6 bg-[#4A3728]' : 'w-1.5 bg-stone-200'}`} />
-                                        ))}
-                                    </div>
-                                    <button onClick={() => setPage(Math.min(bookContent.length - 1, page + 1))} className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#4A3728] text-white shadow-lg disabled:opacity-20 transition-all" disabled={page === bookContent.length - 1}>→</button>
-                                </div>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-[2.5rem] border border-stone-200 shadow-xl p-8 md:p-12">
+                            <div className="animate-in fade-in duration-500 pb-32">
                                 {!done ? (
-                                    <div>
-                                        <span className="text-[10px] font-black uppercase text-stone-400">Question {qIndex + 1} / {quizQuestions.length}</span>
-                                        <h2 className="text-xl font-bold mt-6 mb-10 text-[#3E2723] leading-relaxed">{quizQuestions[qIndex].q}</h2>
-                                        <div className="space-y-3">
-                                            {quizQuestions[qIndex].a.map((opt, i) => (
-                                                <button key={i} onClick={() => handleAns(i)} disabled={ans !== null} className={`w-full text-left p-5 rounded-2xl border text-sm font-medium transition-all ${ans !== null ? i === quizQuestions[qIndex].c ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : ans === i ? 'bg-red-50 border-red-500 text-red-800' : 'opacity-40' : 'hover:border-[#4A3728] hover:bg-stone-50'}`}>
+                                    <div className="bg-white rounded-[2.5rem] border border-stone-200 content-card p-8 md:p-14">
+                                        <div className="flex items-center justify-between mb-10">
+                                            <span className="text-[11px] font-black uppercase text-stone-400 tracking-[0.2em]">Exam {qIdx + 1} / {quizQuestions.length}</span>
+                                            <div className="bg-stone-50 text-stone-400 px-3 py-1 rounded-full text-[10px] font-black">Score: {score}</div>
+                                        </div>
+                                        
+                                        <h2 className="text-2xl font-serif font-bold mb-12 text-[#2C241E] leading-relaxed">{quizQuestions[qIdx].q}</h2>
+                                        
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {quizQuestions[qIdx].a.map((opt, i) => (
+                                                <button key={i} onClick={() => handleAns(i)} disabled={ans !== null} className={`w-full text-left p-6 rounded-2xl border-2 transition-all text-sm font-bold flex items-center gap-4 ${ans !== null ? i === quizQuestions[qIdx].c ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : ans === i ? 'bg-red-50 border-red-500 text-red-800' : 'opacity-40 border-stone-100' : 'bg-white border-stone-100 hover:border-[#4A3728] hover:bg-stone-50 shadow-sm'}`}>
+                                                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] shrink-0 font-black ${ans !== null && i === quizQuestions[qIdx].c ? 'bg-emerald-500 text-white' : 'bg-stone-100 text-stone-400'}`}>{String.fromCharCode(65 + i)}</span>
                                                     {opt}
                                                 </button>
                                             ))}
                                         </div>
+
                                         {ans !== null && (
-                                            <div className="mt-10 p-6 bg-stone-50 rounded-3xl border border-stone-200">
-                                                <p className="text-xs text-stone-500 leading-relaxed italic mb-6">"{quizQuestions[qIndex].e}"</p>
-                                                <button onClick={() => { if (qIndex < quizQuestions.length - 1) { setQIndex(qIndex + 1); setAns(null); } else setDone(true); }} className="w-full py-4 bg-[#4A3728] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Continue</button>
+                                            <div className="mt-12 bg-stone-50 p-8 rounded-[2rem] border border-stone-200 animate-in slide-in-from-top-4 duration-500">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <div className={`w-2 h-2 rounded-full ${ans === quizQuestions[qIdx].c ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">{ans === quizQuestions[qIdx].c ? 'Correct Insight' : 'Review Note'}</p>
+                                                </div>
+                                                <p className="text-[14px] text-[#5D4037] leading-relaxed mb-8 italic">"{quizQuestions[qIdx].e}"</p>
+                                                <button onClick={() => { 
+                                                    if (qIdx < quizQuestions.length - 1) { setQIdx(qIdx + 1); setAns(null); } 
+                                                    else setDone(true);
+                                                }} className="w-full py-5 bg-[#4A3728] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-[#3E2723] active:scale-95 transition-all">
+                                                    {qIdx === quizQuestions.length - 1 ? 'End Examination' : 'Continue'}
+                                                </button>
                                             </div>
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-10">
-                                        <h2 className="text-4xl font-black text-[#4A3728] mb-4">{Math.round((score/quizQuestions.length)*100)}%</h2>
-                                        <p className="text-stone-400 text-sm mb-12 uppercase tracking-widest font-black">Knowledge Verified</p>
-                                        <button onClick={resetQuiz} className="w-full py-4 bg-[#4A3728] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Retake Quiz</button>
+                                    <div className="text-center py-20 bg-white rounded-[3rem] border border-stone-200 content-card px-10">
+                                        <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                                            <span className="text-4xl">📚</span>
+                                        </div>
+                                        <h2 className="text-4xl font-black text-[#4A3728] mb-4 tracking-tighter">{Math.round((score/quizQuestions.length)*100)}%</h2>
+                                        <p className="text-stone-400 text-[10px] mb-12 uppercase tracking-[0.4em] font-black italic">Mastery Certification</p>
+                                        <div className="flex flex-col gap-4 max-w-xs mx-auto">
+                                            <button onClick={resetQuiz} className="w-full py-5 bg-[#4A3728] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all active:scale-95">Restart Exam</button>
+                                            <button onClick={() => setMode('study')} className="w-full py-5 bg-white border-2 border-stone-200 text-[#4A3728] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Return to Library</button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         )}
                     </main>
+
+                    {/* Bottom Nav: Derived from focus and mode */}
+                    {mode === 'study' && !focus && (
+                        <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-50 transition-all-400 animate-in fade-in slide-in-from-bottom-5">
+                            <div className="bg-white border border-stone-200 p-4 rounded-3xl shadow-[0_30px_70px_-15px_rgba(74,55,40,0.35)] flex items-center justify-between">
+                                <button
+                                    onClick={() => setPage(Math.max(0, page - 1))}
+                                    className="w-14 h-14 flex items-center justify-center rounded-2xl text-stone-400 hover:text-[#4A3728] hover:bg-stone-50 transition-all active:scale-90 disabled:opacity-30"
+                                    disabled={page === 0}
+                                >
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="m15 18-6-6 6-6"/>
+                                    </svg>
+                                </button>
+
+                                <div className="flex flex-col items-center">
+                                    <div className="flex gap-1.5 mb-1.5">
+                                        {bookData.map((_, i) => (
+                                            <div
+                                                key={i}
+                                                className={`h-1.5 rounded-full transition-all duration-500 ${i === page ? 'w-6 bg-[#4A3728]' : 'w-1.5 bg-stone-200'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">
+                                        Module {page + 1}
+                                    </span>
+                                </div>
+
+                                <button
+                                    onClick={() => setPage(Math.min(bookData.length - 1, page + 1))}
+                                    className="w-14 h-14 flex items-center justify-center rounded-2xl bg-[#4A3728] text-white shadow-xl shadow-[#4A3728]/30 disabled:opacity-20 transition-all active:scale-90"
+                                    disabled={page === bookData.length - 1}
+                                >
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="m9 18 6-6-6-6"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </footer>
+                    )}
+
+                    {/* Focus Mode Restore Button */}
+                    {focus && mode === 'study' && (
+                        <button 
+                            onClick={() => setFocus(false)}
+                            className="fixed bottom-8 right-8 w-12 h-12 bg-[#4A3728] text-white rounded-full flex items-center justify-center shadow-2xl animate-bounce z-50 transition-all active:scale-90"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                        </button>
+                    )}
                 </div>
             );
         }
